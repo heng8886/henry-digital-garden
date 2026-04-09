@@ -44,6 +44,7 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      # Enable Pages on first deploy so fresh repos can self-bootstrap.
       - uses: actions/configure-pages@v5
         with:
           enablement: true
