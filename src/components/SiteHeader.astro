@@ -17,10 +17,12 @@ const currentPath = withoutBase(Astro.url.pathname);
   <a class="brand" href={withBase('/')}>
     <span class="brand-mark">H</span>
     <span>
-      <strong>Henry 的收藏集</strong>
-      <small>Digital Garden & Archive</small>
+      <strong>Henry 的数字花园</strong>
+      <small>收藏、笔记与慢慢长出来的文字</small>
     </span>
   </a>
+
+  <p class="brand-note">一个持续维护的私人归档站，用来收纳网页、笔记、摘录和长文入口。</p>
 
   <nav class="site-nav" aria-label="主导航">
     {navItems.map((item) => (
@@ -29,4 +31,10 @@ const currentPath = withoutBase(Astro.url.pathname);
       </a>
     ))}
   </nav>
+
+  <div class="header-meta" aria-label="站点特性">
+    <span>长期维护</span>
+    <span>Markdown 驱动</span>
+    <span>GitHub Pages</span>
+  </div>
 </header>

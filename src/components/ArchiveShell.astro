@@ -16,7 +16,7 @@ const meta = buildArchiveMeta(entries);
 const shellId = `archive-${title.replace(/\s+/g, '-').toLowerCase()}`;
 ---
 
-<section class="archive-shell" id={shellId}>
+<section class="archive-shell archive-console" id={shellId}>
   <SectionIntro eyebrow={eyebrow} title={title} description={description} />
 
   <div class="archive-toolbar">
@@ -76,7 +76,7 @@ const shellId = `archive-${title.replace(/\s+/g, '-').toLowerCase()}`;
 
   <div class="archive-status">
     <p>
-      当前展示 <strong data-count>{entries.length}</strong> 条内容
+      当前显示 <strong data-count>{entries.length}</strong> 条档案记录
     </p>
     <button type="button" class="ghost-button" data-reset>
       清空筛选

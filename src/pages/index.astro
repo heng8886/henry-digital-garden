@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import EntryList from '../components/EntryList.astro';
-import { SECTION_INFO } from '../lib/content';
+import { SECTION_INFO, formatDate } from '../lib/content';
 import { getArchiveEntries, getFeaturedEntries, getLatestByCollection } from '../lib/content-service';
 import { withBase } from '../lib/paths';
 
@@ -20,28 +19,77 @@ const counts = {
 };
 
 const chambers = Object.entries(SECTION_INFO);
+const chamberCounts = {
+  bookmarks: counts.bookmarks,
+  notes: counts.notes,
+  quotes: counts.quotes,
+  essays: counts.essays,
+} as const;
+const spotlightEntries = (featuredEntries.length > 0 ? featuredEntries : allEntries).slice(0, 6);
+const latestGroups = [
+  {
+    key: 'bookmarks',
+    label: '网站收藏',
+    href: '/bookmarks/',
+    hint: '最近收进来的链接坐标',
+    entries: latest.bookmarks,
+  },
+  {
+    key: 'notes',
+    label: '笔记',
+    href: '/notes/',
+    hint: '正在生长的方法与观察',
+    entries: latest.notes,
+  },
+  {
+    key: 'quotes',
+    label: '摘录',
+    href: '/quotes/',
+    hint: '留住击中我的句子',
+    entries: latest.quotes,
+  },
+  {
+    key: 'essays',
+    label: '花园随想',
+    href: '/garden/',
+    hint: '写得更长、更完整的部分',
+    entries: latest.essays,
+  },
+];
 ---
 
-<BaseLayout title="Henry 的收藏集" description="一个兼具收藏夹、笔记库、摘录本和个人数字花园的静态网站。">
-  <section class="home-hero">
-    <div class="hero-copy">
-      <p class="eyebrow">Personal Archive</p>
-      <h1>把链接、文字、笔记和随想，整理成一座长期生长的个人花园。</h1>
+<BaseLayout
+  title="Henry 的数字花园"
+  description="一个带着夜景档案馆气质的个人归档站，把收藏、笔记、摘录和随想放在同一张地图里。"
+  pageClass="home-mode"
+>
+  <section class="home-search-strip">
+    <a class="search-shell" href={withBase('/explore/')}>
+      <span class="search-icon">⌕</span>
+      <span>输入标题、标签或分类，进入归档检索</span>
+      <span class="search-hint">/ Explore</span>
+    </a>
+  </section>
+
+  <section class="cyber-hero">
+    <article class="cyber-panel cyber-intro">
+      <span class="entry-pill">个人首页</span>
+      <h1>夜里整理收藏，白天重新使用。</h1>
       <p class="hero-lead">
-        这里不是标准博客模板，而是一套更接近“个人内容操作系统”的静态归档站。每一条收藏都带着上下文，每一段文字都可以被重新找到。
+        这个站把我散落在浏览器、文档和备忘录里的内容，重新放回一个可以反复回来的入口里。它既是收藏夹，也是笔记索引，还是慢慢长出来的个人写作现场。
       </p>
 
       <div class="hero-actions">
         <a class="button-primary" href={withBase('/explore/')}>进入归档</a>
-        <a class="button-secondary" href={withBase('/garden/')}>去看花园随想</a>
+        <a class="button-secondary" href={withBase('/garden/')}>阅读花园随想</a>
       </div>
-    </div>
+    </article>
 
-    <div class="hero-panel">
+    <article class="cyber-panel cyber-status">
       <div>
-        <p class="panel-label">当前规模</p>
+        <p class="panel-label">Archive Status</p>
         <h2>{counts.total}</h2>
-        <p>条内容正在缓慢增长，适合长期维护，不依赖数据库。</p>
+        <p>条内容正在归档中，所有更新都来自本地 Markdown 文件。</p>
       </div>
       <dl class="hero-stats">
         <div>
@@ -61,60 +109,89 @@ const chambers = Object.entries(SECTION_INFO);
           <dd>{counts.essays}</dd>
         </div>
       </dl>
-    </div>
+    </article>
   </section>
 
-  <section class="home-grid-section">
-    <div class="section-intro">
-      <p class="eyebrow">Navigation</p>
-      <h2>四个房间</h2>
-      <p>每个分区都有不同用途，但结构统一，方便持续归档和检索。</p>
+  <section class="cyber-board">
+    <div class="board-header">
+      <p class="eyebrow">Main Rooms</p>
+      <h2>内容入口</h2>
+      <p>像导航站一样直接进入，也像档案柜一样持续补充。</p>
     </div>
 
-    <div class="chamber-grid">
+    <div class="portal-grid">
       {chambers.map(([key, value]) => (
-        <a class="chamber-link" href={withBase(value.href)}>
+        <a class="portal-card" href={withBase(value.href)}>
           <span class="entry-pill">{value.label}</span>
           <strong>{key === 'essays' ? '长文与随想' : value.label}</strong>
           <p>{value.description}</p>
+          <span class="portal-meta">{chamberCounts[key as keyof typeof chamberCounts]} 条内容</span>
         </a>
       ))}
     </div>
   </section>
 
-  <section class="home-columns">
-    <div class="section-intro">
-      <p class="eyebrow">Featured</p>
-      <h2>优先阅读</h2>
-      <p>首页保留一组精选内容，既能快速了解站点气质，也能作为持续更新的入口。</p>
+  <section class="cyber-board">
+    <div class="board-header">
+      <p class="eyebrow">Spotlight</p>
+      <h2>精选入口</h2>
+      <p>优先阅读一些最能代表这个站点气质的内容条目。</p>
     </div>
-    <EntryList entries={featuredEntries} showSection={true} />
+
+    <div class="spotlight-grid">
+      {spotlightEntries.map((entry) => (
+        <article class="spotlight-card">
+          <div class="spotlight-topline">
+            <span class="entry-pill">{entry.section}</span>
+            <time datetime={entry.date}>{formatDate(entry.date)}</time>
+          </div>
+          <h3>
+            <a href={withBase(entry.permalink)}>{entry.title}</a>
+          </h3>
+          <p>{entry.summary}</p>
+          <div class="spotlight-footer">
+            <span>{entry.category}</span>
+            {entry.externalUrl ? (
+              <a href={entry.externalUrl} target="_blank" rel="noreferrer">
+                原站
+              </a>
+            ) : (
+              <a href={withBase(entry.permalink)}>阅读</a>
+            )}
+          </div>
+        </article>
+      ))}
+    </div>
   </section>
 
-  <section class="home-columns">
-    <div class="section-intro">
-      <p class="eyebrow">Latest</p>
+  <section class="cyber-board">
+    <div class="board-header">
+      <p class="eyebrow">Recent Streams</p>
       <h2>最近更新</h2>
-      <p>四个内容区各自保留最新的几条，首页可以快速扫一遍近期整理了什么。</p>
+      <p>四条内容流同时更新，像夜间亮起的不同窗口。</p>
     </div>
 
-    <div class="latest-columns">
-      <div>
-        <h3>网站收藏</h3>
-        <EntryList entries={latest.bookmarks} compact={true} />
-      </div>
-      <div>
-        <h3>笔记</h3>
-        <EntryList entries={latest.notes} compact={true} />
-      </div>
-      <div>
-        <h3>摘录</h3>
-        <EntryList entries={latest.quotes} compact={true} />
-      </div>
-      <div>
-        <h3>花园随想</h3>
-        <EntryList entries={latest.essays} compact={true} />
-      </div>
+    <div class="stream-grid">
+      {latestGroups.map((group) => (
+        <section class="stream-column">
+          <div class="stream-head">
+            <div>
+              <h3>{group.label}</h3>
+              <p>{group.hint}</p>
+            </div>
+            <a href={withBase(group.href)}>全部</a>
+          </div>
+
+          <ul class="stream-list">
+            {group.entries.map((entry) => (
+              <li>
+                <a href={withBase(entry.permalink)}>{entry.title}</a>
+                <time datetime={entry.date}>{formatDate(entry.date)}</time>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </div>
   </section>
 </BaseLayout>

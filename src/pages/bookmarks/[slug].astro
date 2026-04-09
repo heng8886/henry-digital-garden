@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { formatDate } from '../../lib/content';
+import { withBase } from '../../lib/paths';
 
 export async function getStaticPaths() {
   const entries = await getCollection('bookmarks');
@@ -15,7 +16,7 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 ---
 
-<BaseLayout title={`${entry.data.title} | 网站收藏`} description={entry.data.summary}>
+<BaseLayout title={`${entry.data.title} | 网站收藏`} description={entry.data.summary} pageClass="detail-mode">
   <article class="detail-shell">
     <aside class="detail-aside">
       <p class="eyebrow">Bookmark</p>
@@ -38,6 +39,10 @@ const { Content } = await render(entry);
       <a class="button-primary" href={entry.data.externalUrl} target="_blank" rel="noreferrer">
         打开原站
       </a>
+      <div class="detail-actions">
+        <a class="button-secondary" href={withBase('/bookmarks/')}>返回网站收藏</a>
+        <a class="ghost-button" href={withBase('/explore/')}>进入统一归档</a>
+      </div>
     </aside>
     <div class="detail-content prose">
       <Content />

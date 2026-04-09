@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { formatDate } from '../../lib/content';
+import { withBase } from '../../lib/paths';
 
 export async function getStaticPaths() {
   const entries = await getCollection('quotes');
@@ -15,7 +16,7 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 ---
 
-<BaseLayout title={`${entry.data.title} | 文案摘录`} description={entry.data.summary}>
+<BaseLayout title={`${entry.data.title} | 文案摘录`} description={entry.data.summary} pageClass="detail-mode">
   <article class="detail-shell">
     <aside class="detail-aside">
       <p class="eyebrow">Quote</p>
@@ -35,6 +36,10 @@ const { Content } = await render(entry);
           <dd>{entry.data.tags.join(' / ')}</dd>
         </div>
       </dl>
+      <div class="detail-actions">
+        <a class="button-secondary" href={withBase('/quotes/')}>返回摘录</a>
+        <a class="ghost-button" href={withBase('/explore/')}>进入统一归档</a>
+      </div>
     </aside>
     <div class="detail-content prose">
       <Content />
