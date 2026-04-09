@@ -1,0 +1,32 @@
+---
+import { withBase, withoutBase } from '../lib/paths';
+
+const navItems = [
+  { href: '/', label: '首页' },
+  { href: '/explore/', label: '归档' },
+  { href: '/bookmarks/', label: '网站收藏' },
+  { href: '/notes/', label: '笔记' },
+  { href: '/quotes/', label: '摘录' },
+  { href: '/garden/', label: '花园' },
+];
+
+const currentPath = withoutBase(Astro.url.pathname);
+---
+
+<header class="site-header">
+  <a class="brand" href={withBase('/')}>
+    <span class="brand-mark">H</span>
+    <span>
+      <strong>Henry 的收藏集</strong>
+      <small>Digital Garden & Archive</small>
+    </span>
+  </a>
+
+  <nav class="site-nav" aria-label="主导航">
+    {navItems.map((item) => (
+      <a class:list={['nav-link', currentPath === item.href && 'is-active']} href={withBase(item.href)}>
+        {item.label}
+      </a>
+    ))}
+  </nav>
+</header>

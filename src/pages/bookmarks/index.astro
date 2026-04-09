@@ -1,0 +1,16 @@
+---
+import ArchiveShell from '../../components/ArchiveShell.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollectionEntries } from '../../lib/content-service';
+
+const entries = await getCollectionEntries('bookmarks');
+---
+
+<BaseLayout title="网站收藏 | Henry 的收藏集" description="整理外部链接、工具站和灵感来源。">
+  <ArchiveShell
+    eyebrow="Bookmarks"
+    title="网站收藏"
+    description="把常回访的网站、工具、目录和参考资源放在一起。每条链接都尽量附上自己的备注，避免过一阵子忘记为什么收藏。"
+    entries={entries}
+  />
+</BaseLayout>

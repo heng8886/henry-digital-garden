@@ -1,0 +1,145 @@
+---
+import EntryList from './EntryList.astro';
+import SectionIntro from './SectionIntro.astro';
+import { buildArchiveMeta, type ArchiveEntry } from '../lib/content';
+
+interface Props {
+  title: string;
+  description: string;
+  eyebrow?: string;
+  entries: ArchiveEntry[];
+  showSection?: boolean;
+}
+
+const { title, description, eyebrow, entries, showSection = false } = Astro.props;
+const meta = buildArchiveMeta(entries);
+const shellId = `archive-${title.replace(/\s+/g, '-').toLowerCase()}`;
+---
+
+<section class="archive-shell" id={shellId}>
+  <SectionIntro eyebrow={eyebrow} title={title} description={description} />
+
+  <div class="archive-toolbar">
+    <div class="archive-search">
+      <label for={`${shellId}-search`}>搜索</label>
+      <input id={`${shellId}-search`} name="search" type="search" placeholder="搜索标题、简介、标签..." />
+    </div>
+
+    {showSection && meta.sections.length > 1 && (
+      <div>
+        <label for={`${shellId}-section`}>内容区</label>
+        <select id={`${shellId}-section`} name="section">
+          <option value="">全部</option>
+          {meta.sections.map((section) => (
+            <option value={section}>{section}</option>
+          ))}
+        </select>
+      </div>
+    )}
+
+    {meta.categories.length > 1 && (
+      <div>
+        <label for={`${shellId}-category`}>分类</label>
+        <select id={`${shellId}-category`} name="category">
+          <option value="">全部</option>
+          {meta.categories.map((category) => (
+            <option value={category}>{category}</option>
+          ))}
+        </select>
+      </div>
+    )}
+
+    {meta.tags.length > 0 && (
+      <div>
+        <label for={`${shellId}-tag`}>标签</label>
+        <select id={`${shellId}-tag`} name="tag">
+          <option value="">全部</option>
+          {meta.tags.map((tag) => (
+            <option value={tag}>{tag}</option>
+          ))}
+        </select>
+      </div>
+    )}
+
+    {meta.years.length > 1 && (
+      <div>
+        <label for={`${shellId}-year`}>年份</label>
+        <select id={`${shellId}-year`} name="year">
+          <option value="">全部</option>
+          {meta.years.map((year) => (
+            <option value={year}>{year}</option>
+          ))}
+        </select>
+      </div>
+    )}
+  </div>
+
+  <div class="archive-status">
+    <p>
+      当前展示 <strong data-count>{entries.length}</strong> 条内容
+    </p>
+    <button type="button" class="ghost-button" data-reset>
+      清空筛选
+    </button>
+  </div>
+
+  <EntryList entries={entries} showSection={showSection} />
+  <p class="archive-empty" hidden>
+    没有找到匹配的内容，可以换个关键词或清空筛选再试试。
+  </p>
+</section>
+
+<script is:inline define:vars={{ shellId }}>
+  const root = document.getElementById(shellId);
+
+  if (root) {
+    const entries = [...root.querySelectorAll('[data-entry]')];
+    const count = root.querySelector('[data-count]');
+    const empty = root.querySelector('.archive-empty');
+    const searchInput = root.querySelector('input[name="search"]');
+    const sectionSelect = root.querySelector('select[name="section"]');
+    const categorySelect = root.querySelector('select[name="category"]');
+    const tagSelect = root.querySelector('select[name="tag"]');
+    const yearSelect = root.querySelector('select[name="year"]');
+    const resetButton = root.querySelector('[data-reset]');
+
+    const sync = () => {
+      const keyword = searchInput?.value.trim().toLowerCase() ?? '';
+      const section = sectionSelect?.value ?? '';
+      const category = categorySelect?.value ?? '';
+      const tag = tagSelect?.value ?? '';
+      const year = yearSelect?.value ?? '';
+
+      let visible = 0;
+
+      entries.forEach((entry) => {
+        const matchesKeyword = !keyword || entry.dataset.search?.includes(keyword);
+        const matchesSection = !section || entry.dataset.section === section;
+        const matchesCategory = !category || entry.dataset.category === category;
+        const matchesTag = !tag || entry.dataset.tags?.split('|').includes(tag);
+        const matchesYear = !year || entry.dataset.year === year;
+        const matches = matchesKeyword && matchesSection && matchesCategory && matchesTag && matchesYear;
+
+        entry.toggleAttribute('hidden', !matches);
+        if (matches) visible += 1;
+      });
+
+      if (count) count.textContent = String(visible);
+      if (empty) empty.hidden = visible !== 0;
+    };
+
+    [searchInput, sectionSelect, categorySelect, tagSelect, yearSelect].forEach((element) => {
+      element?.addEventListener('input', sync);
+      element?.addEventListener('change', sync);
+    });
+
+    resetButton?.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      if (sectionSelect) sectionSelect.value = '';
+      if (categorySelect) categorySelect.value = '';
+      if (tagSelect) tagSelect.value = '';
+      if (yearSelect) yearSelect.value = '';
+      sync();
+    });
+  }
+</script>

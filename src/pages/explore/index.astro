@@ -1,0 +1,17 @@
+---
+import ArchiveShell from '../../components/ArchiveShell.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getArchiveEntries } from '../../lib/content-service';
+
+const entries = await getArchiveEntries();
+---
+
+<BaseLayout title="归档总览 | Henry 的收藏集" description="一个可以搜索和筛选的统一归档页。">
+  <ArchiveShell
+    eyebrow="Explore"
+    title="统一归档"
+    description="这里聚合了网站收藏、笔记、摘录和花园随想。你可以直接搜索关键词，或者按分类、标签、年份继续收窄。"
+    entries={entries}
+    showSection={true}
+  />
+</BaseLayout>

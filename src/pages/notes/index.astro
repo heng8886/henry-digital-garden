@@ -1,0 +1,16 @@
+---
+import ArchiveShell from '../../components/ArchiveShell.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollectionEntries } from '../../lib/content-service';
+
+const entries = await getCollectionEntries('notes');
+---
+
+<BaseLayout title="笔记 | Henry 的收藏集" description="适合积累方法、观察和结构化文本。">
+  <ArchiveShell
+    eyebrow="Notes"
+    title="笔记"
+    description="把阅读、工具、方法和自己的小型研究，整理成可以长期检索和复用的文本。"
+    entries={entries}
+  />
+</BaseLayout>

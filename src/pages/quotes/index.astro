@@ -1,0 +1,16 @@
+---
+import ArchiveShell from '../../components/ArchiveShell.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollectionEntries } from '../../lib/content-service';
+
+const entries = await getCollectionEntries('quotes');
+---
+
+<BaseLayout title="文案摘录 | Henry 的收藏集" description="保存句子、段落和表达方式。">
+  <ArchiveShell
+    eyebrow="Quotes"
+    title="文案摘录"
+    description="适合保存那些让你停下来的一句话、一个段落，或者值得反复研究的表达结构。"
+    entries={entries}
+  />
+</BaseLayout>

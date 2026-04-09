@@ -1,0 +1,55 @@
+---
+import { createSearchDocument, formatDate, type ArchiveEntry } from '../lib/content';
+import { withBase } from '../lib/paths';
+
+interface Props {
+  entries: ArchiveEntry[];
+  compact?: boolean;
+  showSection?: boolean;
+}
+
+const { entries, compact = false, showSection = false } = Astro.props;
+---
+
+<div class:list={['entry-list', compact && 'is-compact']}>
+  {entries.map((entry) => (
+    <article
+      class="entry-item"
+      data-entry
+      data-search={createSearchDocument(entry)}
+      data-section={entry.section}
+      data-category={entry.category}
+      data-year={entry.date.slice(0, 4)}
+      data-tags={entry.tags.join('|')}
+    >
+      <div class="entry-meta">
+        {showSection && <span class="entry-pill">{entry.section}</span>}
+        <time datetime={entry.date}>{formatDate(entry.date)}</time>
+        <span>{entry.category}</span>
+      </div>
+      <div class="entry-main">
+        <h2>
+          <a href={withBase(entry.permalink)}>{entry.title}</a>
+        </h2>
+        <p>{entry.summary}</p>
+      </div>
+      <div class="entry-side">
+        <ul class="tag-list" aria-label="标签">
+          {entry.tags.map((tag) => (
+            <li>{tag}</li>
+          ))}
+        </ul>
+        <div class="entry-actions">
+          <a class="text-link" href={withBase(entry.permalink)}>
+            阅读内容
+          </a>
+          {entry.externalUrl && (
+            <a class="text-link" href={entry.externalUrl} target="_blank" rel="noreferrer">
+              打开原站
+            </a>
+          )}
+        </div>
+      </div>
+    </article>
+  ))}
+</div>

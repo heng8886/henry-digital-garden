@@ -1,0 +1,43 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { formatDate } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('essays');
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<BaseLayout title={`${entry.data.title} | 花园随想`} description={entry.data.summary}>
+  <article class="detail-shell">
+    <aside class="detail-aside">
+      <p class="eyebrow">Garden</p>
+      <h1>{entry.data.title}</h1>
+      <p>{entry.data.summary}</p>
+      <dl class="detail-meta">
+        <div>
+          <dt>日期</dt>
+          <dd>{formatDate(entry.data.date.toISOString())}</dd>
+        </div>
+        <div>
+          <dt>分类</dt>
+          <dd>{entry.data.category}</dd>
+        </div>
+        <div>
+          <dt>标签</dt>
+          <dd>{entry.data.tags.join(' / ')}</dd>
+        </div>
+      </dl>
+    </aside>
+    <div class="detail-content prose">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>

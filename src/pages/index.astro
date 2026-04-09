@@ -1,0 +1,120 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EntryList from '../components/EntryList.astro';
+import { SECTION_INFO } from '../lib/content';
+import { getArchiveEntries, getFeaturedEntries, getLatestByCollection } from '../lib/content-service';
+import { withBase } from '../lib/paths';
+
+const [allEntries, featuredEntries, latest] = await Promise.all([
+  getArchiveEntries(),
+  getFeaturedEntries(),
+  getLatestByCollection(),
+]);
+
+const counts = {
+  total: allEntries.length,
+  bookmarks: allEntries.filter((entry) => entry.collection === 'bookmarks').length,
+  notes: allEntries.filter((entry) => entry.collection === 'notes').length,
+  quotes: allEntries.filter((entry) => entry.collection === 'quotes').length,
+  essays: allEntries.filter((entry) => entry.collection === 'essays').length,
+};
+
+const chambers = Object.entries(SECTION_INFO);
+---
+
+<BaseLayout title="Henry 的收藏集" description="一个兼具收藏夹、笔记库、摘录本和个人数字花园的静态网站。">
+  <section class="home-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Personal Archive</p>
+      <h1>把链接、文字、笔记和随想，整理成一座长期生长的个人花园。</h1>
+      <p class="hero-lead">
+        这里不是标准博客模板，而是一套更接近“个人内容操作系统”的静态归档站。每一条收藏都带着上下文，每一段文字都可以被重新找到。
+      </p>
+
+      <div class="hero-actions">
+        <a class="button-primary" href={withBase('/explore/')}>进入归档</a>
+        <a class="button-secondary" href={withBase('/garden/')}>去看花园随想</a>
+      </div>
+    </div>
+
+    <div class="hero-panel">
+      <div>
+        <p class="panel-label">当前规模</p>
+        <h2>{counts.total}</h2>
+        <p>条内容正在缓慢增长，适合长期维护，不依赖数据库。</p>
+      </div>
+      <dl class="hero-stats">
+        <div>
+          <dt>网站收藏</dt>
+          <dd>{counts.bookmarks}</dd>
+        </div>
+        <div>
+          <dt>笔记</dt>
+          <dd>{counts.notes}</dd>
+        </div>
+        <div>
+          <dt>摘录</dt>
+          <dd>{counts.quotes}</dd>
+        </div>
+        <div>
+          <dt>花园</dt>
+          <dd>{counts.essays}</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="home-grid-section">
+    <div class="section-intro">
+      <p class="eyebrow">Navigation</p>
+      <h2>四个房间</h2>
+      <p>每个分区都有不同用途，但结构统一，方便持续归档和检索。</p>
+    </div>
+
+    <div class="chamber-grid">
+      {chambers.map(([key, value]) => (
+        <a class="chamber-link" href={withBase(value.href)}>
+          <span class="entry-pill">{value.label}</span>
+          <strong>{key === 'essays' ? '长文与随想' : value.label}</strong>
+          <p>{value.description}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="home-columns">
+    <div class="section-intro">
+      <p class="eyebrow">Featured</p>
+      <h2>优先阅读</h2>
+      <p>首页保留一组精选内容，既能快速了解站点气质，也能作为持续更新的入口。</p>
+    </div>
+    <EntryList entries={featuredEntries} showSection={true} />
+  </section>
+
+  <section class="home-columns">
+    <div class="section-intro">
+      <p class="eyebrow">Latest</p>
+      <h2>最近更新</h2>
+      <p>四个内容区各自保留最新的几条，首页可以快速扫一遍近期整理了什么。</p>
+    </div>
+
+    <div class="latest-columns">
+      <div>
+        <h3>网站收藏</h3>
+        <EntryList entries={latest.bookmarks} compact={true} />
+      </div>
+      <div>
+        <h3>笔记</h3>
+        <EntryList entries={latest.notes} compact={true} />
+      </div>
+      <div>
+        <h3>摘录</h3>
+        <EntryList entries={latest.quotes} compact={true} />
+      </div>
+      <div>
+        <h3>花园随想</h3>
+        <EntryList entries={latest.essays} compact={true} />
+      </div>
+    </div>
+  </section>
+</BaseLayout>

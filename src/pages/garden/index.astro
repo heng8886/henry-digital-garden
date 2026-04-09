@@ -1,0 +1,16 @@
+---
+import ArchiveShell from '../../components/ArchiveShell.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollectionEntries } from '../../lib/content-service';
+
+const entries = await getCollectionEntries('essays');
+---
+
+<BaseLayout title="花园随想 | Henry 的收藏集" description="发布较长文章、日志和长期写作。">
+  <ArchiveShell
+    eyebrow="Garden"
+    title="花园随想"
+    description="这里放更完整的文章、阶段记录和个人随想。它不是流水账，更像一座会慢慢生长的个人花园。"
+    entries={entries}
+  />
+</BaseLayout>
