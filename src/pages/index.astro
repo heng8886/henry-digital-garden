@@ -1,13 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SECTION_INFO, formatDate } from '../lib/content';
-import { getArchiveEntries, getFeaturedEntries, getLatestByCollection } from '../lib/content-service';
+import { getArchiveEntries, getCollectionEntries, getFeaturedEntries } from '../lib/content-service';
 import { withBase } from '../lib/paths';
 
-const [allEntries, featuredEntries, latest] = await Promise.all([
+const [allEntries, featuredEntries, essays] = await Promise.all([
   getArchiveEntries(),
   getFeaturedEntries(),
-  getLatestByCollection(),
+  getCollectionEntries('essays'),
 ]);
 
 const counts = {
@@ -19,178 +19,134 @@ const counts = {
 };
 
 const chambers = Object.entries(SECTION_INFO);
-const chamberCounts = {
-  bookmarks: counts.bookmarks,
-  notes: counts.notes,
-  quotes: counts.quotes,
-  essays: counts.essays,
-} as const;
-const spotlightEntries = (featuredEntries.length > 0 ? featuredEntries : allEntries).slice(0, 6);
-const latestGroups = [
-  {
-    key: 'bookmarks',
-    label: '网站收藏',
-    href: '/bookmarks/',
-    hint: '最近收进来的链接坐标',
-    entries: latest.bookmarks,
-  },
-  {
-    key: 'notes',
-    label: '笔记',
-    href: '/notes/',
-    hint: '正在生长的方法与观察',
-    entries: latest.notes,
-  },
-  {
-    key: 'quotes',
-    label: '摘录',
-    href: '/quotes/',
-    hint: '留住击中我的句子',
-    entries: latest.quotes,
-  },
-  {
-    key: 'essays',
-    label: '花园随想',
-    href: '/garden/',
-    hint: '写得更长、更完整的部分',
-    entries: latest.essays,
-  },
-];
+const chamberCounts = { bookmarks: counts.bookmarks, notes: counts.notes, quotes: counts.quotes, essays: counts.essays } as const;
+
+const pickUnique = (entries: typeof allEntries) => {
+  const seen = new Set<string>();
+  return entries.filter((entry) => {
+    if (seen.has(entry.id)) return false;
+    seen.add(entry.id);
+    return true;
+  });
+};
+
+const heroEntry = essays[0] ?? featuredEntries[0] ?? allEntries[0];
+const storyEntries = pickUnique([
+  ...essays.slice(1),
+  ...featuredEntries,
+  ...allEntries.filter((entry) => entry.collection === 'essays'),
+  ...allEntries.filter((entry) => entry.collection === 'notes'),
+  ...allEntries,
+]).filter((entry) => entry.id !== heroEntry?.id);
+
+const feedEntries = storyEntries.slice(0, 6);
 ---
 
 <BaseLayout
   title="Henry 的数字花园"
-  description="一个带着夜景档案馆气质的个人归档站，把收藏、笔记、摘录和随想放在同一张地图里。"
+  description="一个带着蓝白天空梦境气质的个人博客首页，把长文、笔记和收藏放进更轻盈的背景里。"
   pageClass="home-mode"
 >
-  <section class="home-search-strip">
-    <a class="search-shell" href={withBase('/explore/')}>
-      <span class="search-icon">⌕</span>
-      <span>输入标题、标签或分类，进入归档检索</span>
-      <span class="search-hint">/ Explore</span>
-    </a>
-  </section>
+  <section class="dream-hero" style={`--dream-hero-bg: url('${withBase('/backgrounds/dream-sky.svg')}')`}>
+    <div class="dream-hero-inner">
+      <p class="dream-overline">Personal Blog</p>
+      <h1>Henry 的数字花园</h1>
+      <p class="dream-lead">把长文、笔记、摘录和收藏，放进一片更轻、更安静的天空里。</p>
 
-  <section class="cyber-hero">
-    <article class="cyber-panel cyber-intro">
-      <span class="entry-pill">个人首页</span>
-      <h1>夜里整理收藏，白天重新使用。</h1>
-      <p class="hero-lead">
-        这个站把我散落在浏览器、文档和备忘录里的内容，重新放回一个可以反复回来的入口里。它既是收藏夹，也是笔记索引，还是慢慢长出来的个人写作现场。
-      </p>
+      <a class="dream-search" href={withBase('/explore/')}>
+        <span class="search-icon">⌕</span>
+        <span>搜索文章标题、标签或分类内容...</span>
+      </a>
 
-      <div class="hero-actions">
-        <a class="button-primary" href={withBase('/explore/')}>进入归档</a>
-        <a class="button-secondary" href={withBase('/garden/')}>阅读花园随想</a>
+      <div class="dream-room-pills">
+        {chambers.map(([key, value]) => (
+          <a class="dream-room-pill" href={withBase(value.href)}>
+            <span>{key === 'essays' ? '长文' : value.label}</span>
+            <small>{chamberCounts[key as keyof typeof chamberCounts]} 篇</small>
+          </a>
+        ))}
       </div>
-    </article>
+    </div>
+  </section>
 
-    <article class="cyber-panel cyber-status">
-      <div>
-        <p class="panel-label">Archive Status</p>
-        <h2>{counts.total}</h2>
-        <p>条内容正在归档中，所有更新都来自本地 Markdown 文件。</p>
+  {heroEntry && (
+    <section class="dream-feature-wrap">
+      <div class="dream-section-head">
+        <p class="eyebrow">Featured Story</p>
+        <h2>先读这一篇</h2>
       </div>
-      <dl class="hero-stats">
-        <div>
-          <dt>网站收藏</dt>
-          <dd>{counts.bookmarks}</dd>
-        </div>
-        <div>
-          <dt>笔记</dt>
-          <dd>{counts.notes}</dd>
-        </div>
-        <div>
-          <dt>摘录</dt>
-          <dd>{counts.quotes}</dd>
-        </div>
-        <div>
-          <dt>花园</dt>
-          <dd>{counts.essays}</dd>
-        </div>
-      </dl>
-    </article>
-  </section>
 
-  <section class="cyber-board">
-    <div class="board-header">
-      <p class="eyebrow">Main Rooms</p>
-      <h2>内容入口</h2>
-      <p>像导航站一样直接进入，也像档案柜一样持续补充。</p>
-    </div>
-
-    <div class="portal-grid">
-      {chambers.map(([key, value]) => (
-        <a class="portal-card" href={withBase(value.href)}>
-          <span class="entry-pill">{value.label}</span>
-          <strong>{key === 'essays' ? '长文与随想' : value.label}</strong>
-          <p>{value.description}</p>
-          <span class="portal-meta">{chamberCounts[key as keyof typeof chamberCounts]} 条内容</span>
-        </a>
-      ))}
-    </div>
-  </section>
-
-  <section class="cyber-board">
-    <div class="board-header">
-      <p class="eyebrow">Spotlight</p>
-      <h2>精选入口</h2>
-      <p>优先阅读一些最能代表这个站点气质的内容条目。</p>
-    </div>
-
-    <div class="spotlight-grid">
-      {spotlightEntries.map((entry) => (
-        <article class="spotlight-card">
-          <div class="spotlight-topline">
-            <span class="entry-pill">{entry.section}</span>
-            <time datetime={entry.date}>{formatDate(entry.date)}</time>
+      <article class:list={['dream-feature-card', `is-${heroEntry.collection}`]}>
+        <div class="dream-feature-art">
+          <span class="entry-pill">{heroEntry.section}</span>
+          <div class="dream-feature-glow"></div>
+          <div class="dream-feature-caption">
+            <span class="dream-cover-kicker">Latest Story</span>
+            <strong>{heroEntry.title}</strong>
+            <small>{heroEntry.category}</small>
           </div>
+        </div>
+        <div class="dream-feature-body">
+          <time datetime={heroEntry.date}>{formatDate(heroEntry.date)}</time>
           <h3>
-            <a href={withBase(entry.permalink)}>{entry.title}</a>
+            <a href={withBase(heroEntry.permalink)}>{heroEntry.title}</a>
           </h3>
-          <p>{entry.summary}</p>
-          <div class="spotlight-footer">
-            <span>{entry.category}</span>
-            {entry.externalUrl ? (
-              <a href={entry.externalUrl} target="_blank" rel="noreferrer">
-                原站
-              </a>
-            ) : (
-              <a href={withBase(entry.permalink)}>阅读</a>
-            )}
+          <p>{heroEntry.summary}</p>
+          <div class="dream-feature-actions">
+            <a class="button-primary" href={withBase(heroEntry.permalink)}>阅读文章</a>
+            <a class="button-secondary" href={withBase('/garden/')}>查看全部长文</a>
+          </div>
+        </div>
+      </article>
+    </section>
+  )}
+
+  <section class="dream-feed-wrap">
+    <div class="dream-section-head">
+      <p class="eyebrow">Recent Writing</p>
+      <h2>最近文章</h2>
+      <p>首页以文章阅读为主，其他内容则作为轻入口保留在这片天空下面。</p>
+    </div>
+
+    <div class="dream-feed-grid">
+      {feedEntries.map((entry, index) => (
+        <article class:list={['dream-post-card', `is-${entry.collection}`, index === 0 && 'is-wide']}>
+          <div class="dream-post-cover">
+            <span class="entry-pill">{entry.section}</span>
+            <div class="dream-post-cover-inner">
+              <span class="dream-cover-kicker">{entry.category}</span>
+              <strong>{entry.title}</strong>
+            </div>
+          </div>
+          <div class="dream-post-body">
+            <time datetime={entry.date}>{formatDate(entry.date)}</time>
+            <h3>
+              <a href={withBase(entry.permalink)}>{entry.title}</a>
+            </h3>
+            <p>{entry.summary}</p>
+            <div class="dream-post-meta">
+              <span>{entry.category}</span>
+              <a href={withBase(entry.permalink)}>继续阅读</a>
+            </div>
           </div>
         </article>
       ))}
     </div>
   </section>
 
-  <section class="cyber-board">
-    <div class="board-header">
-      <p class="eyebrow">Recent Streams</p>
-      <h2>最近更新</h2>
-      <p>四条内容流同时更新，像夜间亮起的不同窗口。</p>
+  <section class="dream-side-rooms">
+    <div class="dream-section-head">
+      <p class="eyebrow">Other Rooms</p>
+      <h2>其他房间</h2>
     </div>
 
-    <div class="stream-grid">
-      {latestGroups.map((group) => (
-        <section class="stream-column">
-          <div class="stream-head">
-            <div>
-              <h3>{group.label}</h3>
-              <p>{group.hint}</p>
-            </div>
-            <a href={withBase(group.href)}>全部</a>
-          </div>
-
-          <ul class="stream-list">
-            {group.entries.map((entry) => (
-              <li>
-                <a href={withBase(entry.permalink)}>{entry.title}</a>
-                <time datetime={entry.date}>{formatDate(entry.date)}</time>
-              </li>
-            ))}
-          </ul>
-        </section>
+    <div class="dream-room-grid">
+      {chambers.map(([key, value]) => (
+        <a class:list={['dream-room-card', `is-${key}`]} href={withBase(value.href)}>
+          <strong>{key === 'essays' ? '花园随想' : value.label}</strong>
+          <p>{value.description}</p>
+          <span>{chamberCounts[key as keyof typeof chamberCounts]} 条内容</span>
+        </a>
       ))}
     </div>
   </section>
